@@ -1,36 +1,36 @@
 # Inception - Docker Infrastructure Project
 
-Ce projet met en place une infrastructure web complète avec Docker Compose, incluant Nginx, WordPress et MariaDB.
+This project sets up a complete web infrastructure with Docker Compose, including Nginx, WordPress and MariaDB.
 
 ## 🏗️ Architecture
 
-- **Nginx** : Serveur web avec HTTPS/SSL
-- **WordPress** : CMS avec PHP 8.2 et WP-CLI
-- **MariaDB** : Base de données
-- **Docker Secrets** : Gestion sécurisée des mots de passe
-- **Volumes** : Persistance des données
+- **Nginx** : Web server with HTTPS/SSL
+- **WordPress** : CMS with PHP 8.2 and WP-CLI
+- **MariaDB** : Database
+- **Docker Secrets** : Secure password management
+- **Volumes** : Data persistence
 
 ## 🚀 Installation
 
-### Prérequis
-- Docker et Docker Compose
+### Prerequisites
+- Docker and Docker Compose
 - Make
 
 ### Configuration
 
-1. **Cloner le projet :**
+1. **Clone the project:**
 ```bash
-git clone git@github.com:Maj-e/inception.git
+git clone https://github.com/Maj-e/inception.git
 cd inception
 ```
 
-2. **Configurer l'environnement :**
+2. **Configure environment:**
 ```bash
 cp srcs/.env.example srcs/.env
-# Éditer srcs/.env avec vos valeurs
+# Edit srcs/.env with your values
 ```
 
-3. **Créer les secrets :**
+3. **Create secrets:**
 ```bash
 mkdir secrets
 echo "your_db_password" > secrets/db_password.txt
@@ -39,99 +39,99 @@ echo "admin_user:admin_password" > secrets/credentials.txt
 echo "second_user:user_password" >> secrets/credentials.txt
 ```
 
-## 🎯 Utilisation
+## 🎯 Usage
 
-### Commandes principales
+### Main commands
 
 ```bash
-# Démarrer tout
+# Start everything
 make
 
-# Construire les images
+# Build images
 make build
 
-# Démarrer les services
+# Start services
 make up
 
-# Arrêter les services
+# Stop services
 make down
 
-# Nettoyer (garder images/volumes)
+# Clean (keep images/volumes)
 make clean
 
-# Nettoyer complètement
+# Clean completely
 make fclean
 
-# Redémarrer depuis zéro
+# Restart from scratch
 make re
 ```
 
-### Services individuels
+### Individual services
 
 ```bash
-# Gérer un service spécifique
+# Manage a specific service
 make nginx
 make wordpress  
 make mariadb
 ```
 
-### Information et debug
+### Information and debug
 
 ```bash
-# Voir les logs
+# View logs
 make logs
 
-# Statut des containers
+# Container status
 make ps
 
-# Informations système
+# System information
 make info
 
-# Configuration Docker Compose
+# Docker Compose configuration
 make config
 ```
 
-## 🌐 Accès
+## 🌐 Access
 
-Une fois démarré, le site est accessible sur :
+Once started, the site is accessible at:
 - **HTTPS** : https://localhost:443
 
 ## 📁 Structure
 
 ```
 inception/
-├── Makefile              # Commandes de gestion
-├── secrets/              # Mots de passe (non versionné)
+├── Makefile              # Management commands
+├── secrets/              # Passwords (not versioned)
 │   ├── db_password.txt
 │   ├── db_root_password.txt
 │   └── credentials.txt
 └── srcs/
-    ├── docker-compose.yml # Configuration principale
-    ├── .env              # Variables d'environnement
+    ├── docker-compose.yml # Main configuration
+    ├── .env              # Environment variables
     └── requirements/
-        ├── nginx/        # Configuration Nginx + SSL
+        ├── nginx/        # Nginx configuration + SSL
         ├── wordpress/    # WordPress + PHP-FPM
-        └── mariadb/      # Base de données
+        └── mariadb/      # Database
 ```
 
-## 🔒 Sécurité
+## 🔒 Security
 
-- ✅ Docker Secrets pour les mots de passe
-- ✅ HTTPS uniquement (TLSv1.2/1.3)
-- ✅ Certificats SSL auto-signés
-- ✅ Pas de mots de passe en dur dans le code
-- ✅ Utilisateurs dédiés pour chaque service
+- ✅ Docker Secrets for passwords
+- ✅ HTTPS only (TLSv1.2/1.3)
+- ✅ Self-signed SSL certificates
+- ✅ No hardcoded passwords in code
+- ✅ Dedicated users for each service
 
 ## 📝 Notes
 
-- Le domaine configuré est `mjeannin.42.es` (modifiable dans `.env`)
-- Les volumes de données sont persistants dans `/home/mjeannin/data/`
-- WordPress est configuré avec WP-CLI pour l'automatisation
-- Base de données créée automatiquement au premier démarrage
+- The configured domain is `mjeannin.42.es` (changeable in `.env`)
+- Data volumes are persistent in `/home/mjeannin/data/`
+- WordPress is configured with WP-CLI for automation
+- Database created automatically on first startup
 
-## 🛠️ Développement
+## 🛠️ Development
 
-Pour le développement ou le debug :
-- Les logs sont accessibles via `make logs`
-- Configuration testable avec `make config`
-- Chaque service peut être construit/testé individuellement
+For development or debugging:
+- Logs are accessible via `make logs`
+- Configuration testable with `make config`
+- Each service can be built/tested individually
