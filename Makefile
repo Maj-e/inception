@@ -26,6 +26,7 @@ NC = \033[0m
 .PHONY: all build up down restart clean fclean re logs ps help
 .PHONY: volumes-create volumes-clean
 .PHONY: nginx wordpress mariadb
+.PHONY: bonus bonus-build bonus-up bonus-down bonus-clean bonus-fclean
 
 # Default target
 all: volumes-create build up
@@ -152,6 +153,14 @@ help:
 	@echo "  $(YELLOW)make ps$(NC)              - Show container status"
 	@echo "  $(YELLOW)make logs$(NC)            - Show logs for all services"
 	@echo ""
+	@echo "$(GREEN)Bonus Commands:$(NC)"
+	@echo "  $(YELLOW)make bonus$(NC)           - Create volumes, build and start ALL services (including bonus)"
+	@echo "  $(YELLOW)make bonus-build$(NC)     - Build all images including bonus services"
+	@echo "  $(YELLOW)make bonus-up$(NC)        - Start all services including bonus"
+	@echo "  $(YELLOW)make bonus-down$(NC)      - Stop all services including bonus"
+	@echo "  $(YELLOW)make bonus-clean$(NC)     - Clean all including bonus"
+	@echo "  $(YELLOW)make bonus-fclean$(NC)    - Full cleanup including bonus"
+	@echo ""
 	@echo "$(GREEN)Cleanup Commands:$(NC)"
 	@echo "  $(YELLOW)make clean$(NC)           - Remove containers and networks (keep images/volumes)"
 	@echo "  $(YELLOW)make volumes-clean$(NC)   - Remove only volume data"
@@ -169,4 +178,49 @@ help:
 	@echo "  $(YELLOW)make env$(NC)             - Show environment variables"
 	@echo "  $(YELLOW)make help$(NC)            - Show this help message"
 	@echo ""
-	@echo "$(BLUE)Note:$(NC) Site will be available at $(GREEN)https://localhost:443$(NC) after $(YELLOW)make up$(NC)"
+	@echo "$(BLUE)Mandatory:$(NC) Site available at $(GREEN)https://localhost:443$(NC) after $(YELLOW)make up$(NC)"
+	@echo "$(BLUE)Bonus:$(NC) Additional services available after $(YELLOW)make bonus$(NC):"
+	@echo "$(GREEN)  • Redis Cache: redis://localhost:6379$(NC)"
+	@echo "$(GREEN)  • FTP Server: ftp://localhost:21$(NC)"
+	@echo "$(GREEN)  • Portfolio: http://localhost:3000$(NC)"
+	@echo "$(GREEN)  • Adminer: http://localhost:8080$(NC)"
+	@echo "$(GREEN)  • Monitoring: http://localhost:19999$(NC)"
+
+# BONUS COMMANDS
+bonus: volumes-create bonus-build bonus-up
+
+bonus-build:
+	@echo "$(YELLOW)Building all Docker images (including bonus)...$(NC)"
+	@cd srcs && docker compose -f docker-compose-bonus.yml build
+	@echo "$(GREEN)✓ All images built successfully (with bonus)$(NC)"
+
+bonus-up:
+	@echo "$(GREEN)Starting Inception services (including bonus)...$(NC)"
+	@cd srcs && docker compose -f docker-compose-bonus.yml up -d
+	@echo "$(GREEN)✓ All services started (with bonus)$(NC)"
+	@echo "$(BLUE)=== Services Available ===$(NC)"
+	@echo "$(GREEN)Main Site:$(NC) https://localhost:443"
+	@echo "$(GREEN)Portfolio:$(NC) http://localhost:3000"
+	@echo "$(GREEN)Adminer:$(NC) http://localhost:8080"
+	@echo "$(GREEN)Monitoring:$(NC) http://localhost:19999"
+	@echo "$(GREEN)Redis:$(NC) localhost:6379"
+	@echo "$(GREEN)FTP:$(NC) ftp://localhost:21"
+
+bonus-down:
+	@echo "$(RED)Stopping all services (including bonus)...$(NC)"
+	@cd srcs && docker compose -f docker-compose-bonus.yml down
+	@echo "$(GREEN)✓ All services stopped$(NC)"
+
+bonus-clean: bonus-down
+	@echo "$(YELLOW)Cleaning containers and networks (including bonus)...$(NC)"
+	@docker system prune -f
+	@echo "$(GREEN)✓ Containers and networks cleaned$(NC)"
+
+bonus-fclean: bonus-down
+	@echo "$(RED)⚠️  FULL CLEANUP - This will remove ALL Docker data (including bonus)$(NC)"
+	@echo "$(RED)Removing all containers, networks, and images...$(NC)"
+	@docker system prune -af --volumes
+	@echo "$(RED)Removing volume directories...$(NC)"
+	@sudo rm -rf $(DATA_DIR)/wordpress/* 2>/dev/null || true
+	@sudo rm -rf $(DATA_DIR)/mariadb/* 2>/dev/null || true
+	@echo "$(GREEN)✓ Full cleanup completed$(NC)"

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matteo Jeannin - Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            padding: 60px 0;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-top: -30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .skills {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .skill-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            transition: transform 0.3s;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+        
+        .project-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .project-highlight h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .status {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Matteo Jeannin</h1>
+            <p>42 Student - System Administration & Infrastructure</p>
+            <div class="status">🚀 Inception Project - Bonus Features Active</div>
+        </header>
+        
+        <div class="content">
+            <section class="section">
+                <h2>About Me</h2>
+                <p>Welcome to my portfolio! I'm a passionate student at 42 School, specializing in system administration and infrastructure automation. This website is part of the Inception project bonus, demonstrating containerization and web development skills.</p>
+            </section>
+            
+            <section class="section project-highlight">
+                <h3>🐳 Inception Docker Infrastructure</h3>
+                <p>Complete web infrastructure built with Docker Compose, featuring:</p>
+                <ul style="list-style: none; margin-top: 15px;">
+                    <li>✅ Nginx with HTTPS/SSL</li>
+                    <li>✅ WordPress with PHP 8.2</li>
+                    <li>✅ MariaDB Database</li>
+                    <li>✅ Redis Cache (Bonus)</li>
+                    <li>✅ FTP Server (Bonus)</li>
+                    <li>✅ Adminer (Bonus)</li>
+                    <li>✅ Portfolio Site (Bonus)</li>
+                    <li>✅ Monitoring (Bonus)</li>
+                </ul>
+            </section>
+            
+            <section class="section">
+                <h2>Technical Skills</h2>
+                <div class="skills">
+                    <div class="skill-card">
+                        <h3>🐳 Docker</h3>
+                        <p>Containerization, Docker Compose, Multi-stage builds</p>
+                    </div>
+                    <div class="skill-card">
+                        <h3>🔧 System Admin</h3>
+                        <p>Linux, Nginx, Database Management</p>
+                    </div>
+                    <div class="skill-card">
+                        <h3>🌐 Web Development</h3>
+                        <p>HTML, CSS, JavaScript, Node.js</p>
+                    </div>
+                    <div class="skill-card">
+                        <h3>🔒 Security</h3>
+                        <p>SSL/TLS, Docker Secrets, Secure Configuration</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>Project Architecture</h2>
+                <p>This Inception project demonstrates a complete microservices architecture with:</p>
+                <ul>
+                    <li><strong>Nginx:</strong> Reverse proxy with SSL termination</li>
+                    <li><strong>WordPress:</strong> Content management system</li>
+                    <li><strong>MariaDB:</strong> Relational database</li>
+                    <li><strong>Redis:</strong> Caching layer for improved performance</li>
+                    <li><strong>FTP:</strong> File transfer protocol server</li>
+                    <li><strong>Adminer:</strong> Database administration interface</li>
+                    <li><strong>Portfolio:</strong> This static website (Node.js)</li>
+                    <li><strong>Monitoring:</strong> System monitoring and metrics</li>
+                </ul>
+            </section>
+        </div>
+        
+        <footer class="footer">
+            <p>&copy; 2025 Matteo Jeannin - 42 School Inception Project</p>
+            <p>Built with ❤️ and Docker 🐳</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Simple animation for skill cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.skill-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.6s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+        });
+        
+        // Fetch and display dynamic info
+        fetch('/api/info')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Portfolio loaded for:', data.name);
+            })
+            .catch(error => console.log('Static mode - no API available'));
+    </script>
+</body>
+</html>
