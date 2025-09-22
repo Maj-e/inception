@@ -1,0 +1,294 @@
+# 📚 INCEPTION - GUIDE DE PRÉPARATION POUR L'ÉVALUATION
+
+## 🎯 CONNAISSANCES THÉORIQUES À MAÎTRISER
+
+### 1. 🐳 Docker Fundamentals
+**Questions attendues :**
+- **"Comment fonctionne Docker ?"**
+  → Expliquer la containerisation, la différence avec les VMs
+  → Parler des namespaces, cgroups, et layered filesystem
+
+- **"Différence entre image et container ?"**
+  → Image = modèle/template statique
+  → Container = instance en cours d'exécution d'une image
+
+- **"Avantages de Docker vs VMs ?"**
+  → Plus léger (partage le kernel)
+  → Démarrage plus rapide
+  → Meilleure utilisation des ressources
+  → Portabilité et reproductibilité
+
+### 2. 🔧 Docker Compose
+**Questions attendues :**
+- **"Qu'est-ce que Docker Compose ?"**
+  → Outil d'orchestration pour multi-containers
+  → Définition des services dans docker-compose.yml
+  → Gestion des dépendances entre services
+
+- **"Différence entre docker run et docker-compose ?"**
+  → docker run = conteneur unique
+  → docker-compose = orchestration de plusieurs services
+  → Gestion automatique des réseaux et volumes
+
+### 3. 🏗️ Architecture du Projet
+**Expliquer la structure :**
+```
+inception/
+├── Makefile                    # Automatisation des tâches
+├── srcs/
+│   ├── docker-compose.yml     # Orchestration des services
+│   ├── .env                   # Variables d'environnement
+│   └── requirements/
+│       ├── nginx/             # Reverse proxy + SSL
+│       ├── wordpress/         # Application web + PHP-FPM
+│       └── mariadb/           # Base de données
+```
+
+---
+
+## 🔍 CHECKLIST TECHNIQUE PRE-ÉVALUATION
+
+### ✅ Tests Obligatoires Avant Évaluation
+
+#### 1. Nettoyage Complet de l'Environnement
+```bash
+# Commande exacte de l'évaluation :
+docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume ls -q); docker network rm $(docker network ls -q) 2>/dev/null
+```
+
+#### 2. Construction et Démarrage
+```bash
+make
+# Doit fonctionner en une seule commande !
+```
+
+#### 3. Vérifications Post-Démarrage
+```bash
+# Containers actifs :
+docker ps
+# Doit montrer : nginx, wordpress, mariadb
+
+# Volumes créés :
+docker volume ls
+# Doit montrer : srcs_wordpress_data, srcs_mariadb_data
+
+# Réseau créé :
+docker network ls
+# Doit montrer : srcs_inception
+
+# Accès HTTPS uniquement :
+curl http://localhost:80        # DOIT ÉCHOUER
+curl -k https://localhost:443   # DOIT FONCTIONNER
+```
+
+### ✅ Points de Contrôle Dockerfile
+
+#### NGINX (srcs/requirements/nginx/Dockerfile)
+- [x] FROM debian:bookworm ✓
+- [x] Pas de commandes interdites (tail -f, sleep infinity) ✓
+- [x] CMD nginx -g "daemon off;" ✓
+- [x] Configuration SSL/TLS custom ✓
+
+#### WordPress (srcs/requirements/wordpress/Dockerfile)
+- [x] FROM debian:bookworm ✓
+- [x] PHP-FPM installé ✓
+- [x] Pas de nginx dans ce container ✓
+- [x] ENTRYPOINT sur script custom ✓
+- [x] WP-CLI installé ✓
+
+#### MariaDB (srcs/requirements/mariadb/Dockerfile)
+- [x] FROM debian:bookworm ✓
+- [x] Script d'initialisation custom ✓
+- [x] Pas de commandes interdites ✓
+
+---
+
+## 📋 DÉMONSTRATION PRATIQUE
+
+### 1. 🌐 Test NGINX + SSL/TLS
+**Étapes à montrer :**
+1. `curl http://localhost:80` → Doit échouer
+2. `curl -k https://localhost:443` → Doit fonctionner
+3. Ouvrir navigateur sur https://mjeannin.42.fr
+4. Montrer le certificat SSL (même si auto-signé)
+
+**Points clés à expliquer :**
+- Configuration dans /etc/nginx/ssl/
+- TLS 1.2/1.3 uniquement
+- Redirection HTTP → HTTPS
+
+### 2. 📝 Test WordPress + PHP-FPM
+**Étapes à montrer :**
+1. Page d'accueil WordPress (pas d'installation)
+2. Connexion admin avec "wpowner" (PAS admin!)
+3. Création d'un article de test
+4. Vérification de la publication
+
+**Points clés à expliquer :**
+- PHP-FPM sur port 9000
+- Communication nginx ↔ wordpress via réseau Docker
+- Volume partagé pour fichiers WordPress
+
+### 3. 🗄️ Test MariaDB
+**Étapes à montrer :**
+```bash
+# Connexion à la base (DOIT ÉCHOUER sans mot de passe) :
+docker exec -it mariadb mysql -u root
+
+# Connexion avec utilisateur WordPress (DOIT FONCTIONNER) :
+docker exec -it mariadb mysql -u wpuser -p
+# Mot de passe depuis secrets
+
+# Vérifier la base :
+USE wordpress_db;
+SHOW TABLES;
+SELECT * FROM wp_users;
+```
+
+**Points clés à expliquer :**
+- Pas de connexion root sans mot de passe
+- Utilisateur dédié pour WordPress
+- Base de données non vide
+
+### 4. 💾 Test Persistance
+**Étapes à montrer :**
+```bash
+# Arrêter les services :
+docker-compose down
+
+# Redémarrer :
+make
+
+# Vérifier que les données sont toujours là :
+# - Articles WordPress créés
+# - Base de données intact
+```
+
+---
+
+## 🚨 PIÈGES À ÉVITER
+
+### ❌ Erreurs qui font échouer l'évaluation
+
+#### Configuration Docker
+- **network: host** dans docker-compose.yml
+- **links:** dans docker-compose.yml  
+- **--link** dans Makefile ou scripts
+- Images pre-built (pas FROM debian:bookworm)
+
+#### Dockerfiles Interdits
+- `tail -f`, `sleep infinity`, `while true`
+- `nginx & bash` dans ENTRYPOINT
+- Base images incorrectes (ubuntu, alpine récent)
+
+#### Sécurité
+- Mots de passe en dur dans les fichiers
+- Connexion root MySQL sans mot de passe
+- Admin username contenant "admin"
+
+#### Volumes et Persistance
+- Volumes qui ne pointent pas vers /home/login/data/
+- Données qui ne persistent pas après redémarrage
+
+---
+
+## 🗣️ QUESTIONS/RÉPONSES TYPES
+
+### Q: "Pourquoi utiliser Docker au lieu de VMs ?"
+**R:** Docker partage le kernel de l'hôte, donc plus léger et rapide. Les VMs émulent un OS complet. Docker = isolation des processus, VMs = isolation complète du système.
+
+### Q: "Comment les containers communiquent ?"
+**R:** Via le réseau Docker 'srcs_inception'. Chaque service a son nom de service comme hostname (nginx peut faire `curl wordpress:9000`).
+
+### Q: "Pourquoi NGINX séparé de WordPress ?"
+**R:** Séparation des responsabilités : NGINX = reverse proxy + SSL, WordPress = application PHP. Plus sécurisé et modulaire.
+
+### Q: "Comment fonctionnent les volumes ?"
+**R:** Bind mounts entre `/home/mjeannin/data/` (hôte) et `/var/lib/mysql` (container). Données persistent même si container supprimé.
+
+### Q: "Pourquoi PHP-FPM ?"
+**R:** Sépare le traitement PHP du serveur web. Plus performant que mod_php, permet de scaler indépendamment.
+
+---
+
+## 🎛️ COMMANDES UTILES PENDANT L'ÉVALUATION
+
+### Diagnostic rapide
+```bash
+# Status général :
+docker ps -a
+docker volume ls
+docker network ls
+
+# Logs des services :
+docker logs nginx
+docker logs wordpress  
+docker logs mariadb
+
+# Accès aux containers :
+docker exec -it nginx bash
+docker exec -it wordpress bash
+docker exec -it mariadb bash
+
+# Test connectivité :
+docker exec -it nginx ping wordpress
+docker exec -it wordpress ping mariadb
+```
+
+### Vérification des configurations
+```bash
+# Configuration NGINX :
+docker exec -it nginx cat /etc/nginx/nginx.conf
+
+# Configuration PHP-FPM :
+docker exec -it wordpress cat /etc/php/8.2/fpm/pool.d/www.conf
+
+# Configuration MariaDB :
+docker exec -it mariadb cat /etc/mysql/mariadb.conf.d/50-server.cnf
+```
+
+---
+
+## 🎁 FONCTIONNALITÉS BONUS
+
+### Services Supplémentaires Implémentés
+- **Redis** : Cache pour WordPress (performance)
+- **FTP** : Gestion de fichiers via vsftpd
+- **Adminer** : Interface web pour base de données
+- **Portfolio** : Site statique personnel
+
+### Points à démontrer pour le bonus
+1. Tous les services démarrent correctement
+2. Redis cache fonctionne avec WordPress
+3. FTP accessible pour upload de fichiers
+4. Adminer permet gestion de la base
+5. Site portfolio accessible
+
+---
+
+## ✅ CHECKLIST FINALE AVANT ÉVALUATION
+
+### Préparation personnelle
+- [ ] Relire le subject PDF complet
+- [ ] Tester tous les scénarios de cette prepa
+- [ ] Préparer des explications claires et simples
+- [ ] Vérifier que tous les services fonctionnent
+- [ ] Tester la persistance après redémarrage
+
+### Test final
+- [ ] `make clean && make` fonctionne parfaitement
+- [ ] https://mjeannin.42.fr accessible uniquement
+- [ ] WordPress fonctionnel avec admin "wpowner"
+- [ ] Base de données accessible avec bon utilisateur
+- [ ] Volumes persistent dans /home/mjeannin/data/
+- [ ] Réseau Docker custom opérationnel
+
+### Documents à connaître
+- [ ] Architecture du projet (dessiner si nécessaire)
+- [ ] docker-compose.yml expliqué ligne par ligne
+- [ ] Dockerfiles expliqués instruction par instruction
+- [ ] Scripts d'initialisation compris
+
+---
+
+**🎯 OBJECTIF : Démontrer une maîtrise complète de Docker, de l'architecture microservices et des bonnes pratiques de sécurité !**
