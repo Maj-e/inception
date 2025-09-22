@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     image: mariadb
     container_name: mariadb
-    restart: unless-stopped
+    restart: on-failure
     environment:
       - SQL_DATABASE=${SQL_DATABASE}
       - SQL_USER=${SQL_USER}
@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
     image: nginx
     container_name: nginx
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "443:443"
     volumes:
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     image: wordpress
     container_name: wordpress
-    restart: unless-stopped
+    restart: on-failure
     environment:
       - WORDPRESS_DB_HOST=mariadb:3306
       - WORDPRESS_DB_NAME=${SQL_DATABASE}
@@ -67,7 +67,7 @@ services:
       dockerfile: Dockerfile
     image: redis
     container_name: redis
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "6379:6379"
     networks:
@@ -79,7 +79,7 @@ services:
       dockerfile: Dockerfile
     image: ftp
     container_name: ftp
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "21:21"
       - "21100-21110:21100-21110"
@@ -96,7 +96,7 @@ services:
       dockerfile: Dockerfile
     image: portfolio
     container_name: portfolio
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "3000:3000"
     networks:
@@ -108,7 +108,7 @@ services:
       dockerfile: Dockerfile
     image: adminer
     container_name: adminer
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "8080:8080"
     networks:
@@ -122,7 +122,7 @@ services:
       dockerfile: Dockerfile
     image: monitoring
     container_name: monitoring
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "19999:19999"
     volumes:

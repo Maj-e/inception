@@ -14,36 +14,50 @@ fi
 mkdir -p /run/mysqld
 chown mysql:mysql /run/mysqld
 
-# Start MariaDB (not mysql!)
-service mariadb start
+# Check if database is already configured
+if [ ! -f "/var/lib/mysql/.db_configured" ]; then
+    echo "First time setup - configuring database..."
+    
+    # Start MariaDB temporarily for setup
+    mysqld_safe --user=mysql --skip-grant-tables --skip-networking &
+    MARIADB_PID=$!
+    
+    # Wait for MariaDB to be ready
+    echo "Waiting for MariaDB to be ready..."
+    sleep 10
+    
+    while ! mysqladmin ping >/dev/null 2>&1; do
+        echo "Waiting for MariaDB..."
+        sleep 1
+    done
+    
+    echo "MariaDB is ready! Creating database and user..."
+    
+    # Configure database and users
+    mysql << EOF
+FLUSH PRIVILEGES;
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;
+CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'%' IDENTIFIED BY '${SQL_PASSWORD}';
+GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'%';
+FLUSH PRIVILEGES;
+EOF
+    
+    # Mark as configured
+    touch /var/lib/mysql/.db_configured
+    
+    # Stop the temporary MariaDB instance
+    kill $MARIADB_PID
+    wait $MARIADB_PID 2>/dev/null
+    
+    echo "Database setup complete!"
+else
+    echo "Database already configured, skipping setup..."
+fi
 
-# Wait for MariaDB to be ready
-echo "Waiting for MariaDB to be ready..."
-sleep 10
+echo "Starting MariaDB in normal mode..."
 
-# Check if MariaDB is started
-while ! mysqladmin ping >/dev/null 2>&1; do
-    echo "Waiting for MariaDB..."
-    sleep 1
-done
-
-echo "MariaDB is ready! Creating database and user..."
-
-# Create database and user
-mysql -e "CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;"
-mysql -e "CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'%' IDENTIFIED BY '${SQL_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'%';"
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';"
-mysql -e "CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
-mysql -e "FLUSH PRIVILEGES;"
-
-echo "Database setup complete! Restarting MariaDB in safe mode..."
-
-# Stop MariaDB properly
-mysqladmin -u root -p${SQL_ROOT_PASSWORD} shutdown
-
-# Restart in daemon mode
+# Start in daemon mode
 exec mysqld_safe --user=mysql
-
-

@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     image: mariadb
     container_name: mariadb
-    restart: unless-stopped
+    restart: on-failure
     environment:
       - SQL_DATABASE=${SQL_DATABASE}
       - SQL_USER=${SQL_USER}
@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
     image: nginx
     container_name: nginx
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "443:443"
     volumes:
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     image: wordpress
     container_name: wordpress
-    restart: unless-stopped
+    restart: on-failure
     environment:
       - WORDPRESS_DB_HOST=mariadb:3306
       - WORDPRESS_DB_NAME=${SQL_DATABASE}
