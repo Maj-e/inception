@@ -2,8 +2,7 @@
 
 # Secrets - NE JAMAIS PUSHER LES MOTS DE PASSE !
 secrets/
-eval.txt
-sujet.txt
+
 # Environment files
 .env
 .env.local

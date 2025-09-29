@@ -1,0 +1,416 @@
+# 📋 Inception Project Evaluation Criteriantroduction
+
+Please comply with the following rules:
+
+## 🎯 Project Overview- Remain polite, courteous, respectful and constructive throughout the
+
+This document outlines the evaluation criteria for the Inception project, which involves setting up a complete infrastructure using Docker and Docker Compose.evaluation process. The well-being of the community depends on it.
+
+- Identify with the student or group whose work is evaluated the possible
+
+---dysfunctions in their project. Take the time to discuss and debate the
+
+problems that may have been identified.
+
+## 📊 Grading Scale- You must consider that there might be some differences in how your peers
+
+- **Excellent (5)**: Exceeds expectations, perfect implementationmight have understood the project's instructions and the scope of its
+
+- **Good (4)**: Meets all requirements with minor improvements possiblefunctionalities. Always keep an open mind and grade them as honestly as
+
+- **Satisfactory (3)**: Meets basic requirementspossible. The pedagogy is useful only and only if the peer-evaluation is
+
+- **Insufficient (2)**: Partial implementation with notable issuesdone seriously.
+
+- **Fail (1)**: Does not meet basic requirementsGuidelines
+
+- Only grade the work that was turned in the Git repository of the evaluated
+
+---student or group.
+
+- Double -check that the Git repository belongs to the student(s). Ensure that
+
+## 🔧 Technical Requirementsthe project is the one expected. Also, check that 'git clone' is used in an
+
+empty folder.
+
+### 🐳 Docker & Containerization- Check carefully that no malicious aliases was used to fool you and make you
+
+**Weight: 25%**evaluate something that is not the content of the official repository.
+
+- [ ] **Custom Dockerfiles**: All services use custom Dockerfiles (no pre-built images)- To avoid any surprises and if applicable, review together any scripts used
+
+- [ ] **Base Images**: Using Debian Bookworm or Alpine (penultimate stable version)https://projects.intra.42.fr/scale_teams/3929979/edit
+
+- [ ] **Container Architecture**: Each service runs in its own container1/72/16/22, 6:12 PM
+
+- [ ] **No --link flag**: Proper Docker networking without deprecated link flagIntra Projects Inception Edit
+
+- [ ] **No infinite loops**: Containers don't use hacky infinite loops (tail -f, while true, etc.)to facilitate the grading (scripts for testing or automation).
+
+- If you have not completed the assignment you are going to evaluate, you have
+
+### 🌐 Service Configurationto read the entire subject prior to starting the evaluation process.
+
+**Weight: 35%**- Use the available flags to report an empty repository, a non-functioning
+
+program, a Norm error, cheating, and so forth.
+
+#### NGINX (Web Server)In these cases, the evaluation process ends and the final grade is 0,
+
+- [ ] **TLS 1.2/1.3**: HTTPS only with proper SSL/TLS configurationor -42 in case of cheating. However, except for cheating, student are
+
+- [ ] **Port 443**: Accessible via HTTPS on port 443strongly encouraged to review together the work that was turned in, in order
+
+- [ ] **Custom Configuration**: Non-default nginx.confto identify any mistakes that shouldn't be repeated in the future.
+
+- [ ] **Domain**: Using login.42.fr domain formatAttachments
+
+
+
+#### WordPress + PHP-FPMsubject.pdf (https://cdn.intra.42.fr/pdf/pdf/28114/en.subject.pdf)
+
+- [ ] **Separate Container**: WordPress in its own containerPreliminaries
+
+- [ ] **PHP-FPM**: Using PHP-FPM for processingIf cheating is suspected, the evaluation stops here. Use the "Cheat" flag to report it. Take this decision calmly, wisely,
+
+- [ ] **Database Connection**: Proper connection to MariaDBand please, use this button with caution.
+
+- [ ] **No nginx**: WordPress container doesn't contain nginxPreliminary tests
+
+- [ ] **Volume Management**: WordPress files on host volume- Defense can only happen if the evaluated student or group is present.
+
+This way everybody learns by sharing knowledge with each other.
+
+#### MariaDB (Database)- If no work has been submitted (or wrong files, wrong directory, or
+
+- [ ] **Separate Container**: Database in its own containerwrong filenames), the grade is 0, and the evaluation process ends.
+
+- [ ] **Data Persistence**: Database data stored on host volume- For this project, you have to clone their Git repository on their
+
+- [ ] **User Management**: Non-root database user creationstation.
+
+- [ ] **Initialization**: Proper database and user setup
+
+Yes
+
+### 🔐 Security & Data Management
+
+**Weight: 20%**No
+
+General instructions
+
+#### Docker SecretsGeneral instructions
+
+- [ ] **Password Storage**: Database and user passwords in secrets- For the entire evaluation process, if you don't know how to check a
+
+- [ ] **No Hardcoding**: No passwords in Dockerfiles or compose filesrequirement, or verify anything, the evaluated student has to help you.
+
+- [ ] **Secret Mounting**: Proper secret file mounting in containers- Ensure that all the files required to configure the application are
+
+located inside a srcs folder. The srcs folder must be located at the
+
+#### Volumesroot of the repository.
+
+- [ ] **WordPress Volume**: WordPress files persistence- Ensure that a Makefile is located at the root of the repository.
+
+- [ ] **Database Volume**: MariaDB data persistence- Before starting the evaluation, run this command in the terminal:
+
+- [ ] **Host Storage**: Volumes stored in /home/login/data/"docker stop $(docker ps -qa); docker rm $(docker ps -qa);
+
+docker rmi -f $(docker images -qa); docker volume rm $(docker volume ls -q);
+
+### 🎛️ Infrastructure Managementhttps://projects.intra.42.fr/scale_teams/3929979/edit
+
+**Weight: 20%**2/72/16/22, 6:12 PM
+
+Intra Projects Inception Edit
+
+#### Docker Composedocker network rm $(docker network ls -q) 2>/dev/null"
+
+- [ ] **Network**: Custom Docker network for inter-service communication- Read the docker-compose.yml file. There musn't be 'network: host' in
+
+- [ ] **Service Dependencies**: Proper service startup orderit or 'links:'. Otherwise, the evaluation ends now.
+
+- [ ] **Restart Policies**: Appropriate restart policies (on-failure recommended)- Read the docker-compose.yml file. There must be 'network(s)' in it.
+
+- [ ] **Environment Variables**: Proper environment variable usageOtherwise, the evaluation ends now.
+
+- Examine the Makefile and all the scripts in which Docker is used.
+
+#### MakefileThere musn't be '--link' in any of them. Otherwise, the evaluation
+
+- [ ] **Setup Commands**: build, up, down, clean commandsends now.
+
+- [ ] **Proper Targets**: All necessary Make targets present- Examine the Dockerfiles. If you see 'tail -f' or any command run in
+
+- [ ] **Documentation**: Clear command descriptionsbackground in any of them in the ENTRYPOINT section, the evaluation
+
+ends now. Same thing if 'bash' or 'sh' are used but not for running a
+
+---script (e.g, 'nginx & bash' or 'bash').
+
+- If the entrypoint is a script (e.g., ENTRYPOINT ["sh", "my_entrypoint.sh"],
+
+## 🎁 Bonus FeaturesENTRYPOINT ["bash", "my_entrypoint.sh"]), ensure it runs no program
+
+**Additional Points (up to +25%)**in background (e.g, 'nginx & bash').
+
+- Examine all the scripts in the repository. Ensure none of them runs
+
+### Additional Servicesan infinite loop.
+
+- [ ] **Redis Cache**: Redis container for WordPress cachingThe following are a few examples of prohibited commands:
+
+- [ ] **FTP Server**: vsftpd container for file management'sleep infinity', 'tail -f /dev/null', 'tail -f /dev/random'
+
+- [ ] **Adminer**: Database administration interface- Run the Makefile.
+
+- [ ] **Static Website**: Custom static website (non-WordPress)
+
+- [ ] **Monitoring**: Additional monitoring serviceYes
+
+
+
+### Advanced ConfigurationNo
+
+- [ ] **Service Discovery**: Advanced networking configurationMandatory part
+
+- [ ] **Load Balancing**: Multiple instance managementThis project consists in setting up a small infrastructure composed of different services using docker-compose. Ensure
+
+- [ ] **Backup Strategy**: Automated backup solutionsthat all the following points are correct.
+
+Project overview
+
+---- The evaluated person has to explain to you in simple terms:
+
+- How Docker and docker-compose work
+
+## ✅ Evaluation Checklist- The difference between a Docker image used with docker-compose and
+
+without docker-compose
+
+### 🚀 Startup & Demo- The benefit of Docker compared to VMs
+
+- [ ] **Single Command**: `make` command builds and starts everything- The pertinence of the directory structure required for this project
+
+- [ ] **Service Accessibility**: All services accessible via domain(an example is provided in the subject's PDF file).
+
+- [ ] **HTTPS Working**: SSL certificate properly configured
+
+- [ ] **WordPress Functional**: Can login and create contentYes
+
+- [ ] **Database Connectivity**: WordPress properly connected to database
+
+No
+
+### 📁 Code ReviewSimple setup
+
+- [ ] **File Structure**: Proper project organization- Ensure that NGINX can be accessed by port 443 only. Once done, open
+
+- [ ] **Configuration Files**: All config files present and properly configuredthe page.
+
+- [ ] **Docker Compose**: Valid docker-compose.yml structure- Ensure that a SSL/TLS certificate is used.
+
+- [ ] **Dockerfiles**: Custom and optimized Dockerfiles- Ensure that the WordPress website is properly installed and configured
+
+- [ ] **Scripts**: Initialization scripts working correctly(you shouldn't see the WordPress Installation page). To access it,
+
+https://projects.intra.42.fr/scale_teams/3929979/edit
+
+### 🔍 Security Audit3/72/16/22, 6:12 PM
+
+- [ ] **No Default Passwords**: All default passwords changedIntra Projects Inception Edit
+
+- [ ] **Secret Management**: Passwords properly securedopen https://login.42.fr in your browser, where login is the login of
+
+- [ ] **SSL Configuration**: Strong SSL/TLS configurationthe evaluated student. You shouldn't be able to access the site via
+
+- [ ] **Container Security**: Containers follow security best practiceshttp://login.42.fr.
+
+If something doesn't work as expected, the evaluation process ends now.
+
+### 🧪 Testing & Reliability
+
+- [ ] **Container Restart**: Services restart properly after failureYes
+
+- [ ] **Data Persistence**: Data survives container restarts
+
+- [ ] **Clean Shutdown**: Services stop cleanly with docker-compose downNo
+
+- [ ] **Resource Usage**: Reasonable resource consumptionDocker Basics
+
+- Start by checking the Dockerfiles. There must be one Dockerfile per
+
+---service. Ensure that the Dockerfiles are not empty files. If it's not
+
+the case or if a Dockerfile is missing, the evaluation process ends
+
+## ❌ Common Issues & Deductionsnow.
+
+- Make sure the evaluated student has written their own Dockerfiles and
+
+### Major Issues (-10 to -20 points)built their own Docker images. Indeed, it is forbidden to use
+
+- Using pre-built Docker images instead of custom Dockerfilesready-made ones or to use services such as DockerHub.
+
+- Hardcoded passwords in configuration files- Ensure that every container is built from the penultimate stable version
+
+- Services not properly connectedof Alpine Linux or from Debian Buster. If a Dockerfile does not start
+
+- SSL/TLS not working or improperly configuredwith 'FROM alpine' or 'FROM debian:buster', or any other local image,
+
+- Data not persisting between container restartsthe evaluation process ends now.
+
+- The Docker images must have the same name as their corresponding
+
+### Minor Issues (-2 to -5 points)service. Otherwise, the evaluation process ends now.
+
+- Suboptimal Dockerfile practices- Ensure that the Makefile has set up all the services via docker-compose.
+
+- Missing or incomplete documentationThis means that the containers must have been built using docker-compose
+
+- Minor configuration issuesand that no crash happened. Otherwise, the evaluation process ends.
+
+- Non-standard port usage without justification
+
+Yes
+
+### Critical Failures (Automatic 0)
+
+- Project doesn't startNo
+
+- Major security vulnerabilitiesDocker Network
+
+- Using prohibited tools or methods- Ensure that docker-network is used by checking the docker-compose.yaml
+
+- Plagiarism or copied solutionsfile. Then run the 'docker network ls' command to verify that a
+
+network is visible.
+
+---- The evaluated student has to give you a simple explanation of
+
+docker-network.
+
+## 🎯 Evaluation GuidelinesIf any of the above points is not correct, the evaluation process ends
+
+now.
+
+### For Evaluators
+
+1. **Start Fresh**: Begin evaluation with clean Docker environmentYes
+
+2. **Follow Steps**: Execute `make` and verify each service
+
+3. **Test Functionality**: Actually use WordPress, test connectionsNo
+
+4. **Review Code**: Examine Dockerfiles and configurations thoroughlyNGINX with SSL/TLS
+
+5. **Check Compliance**: Verify all technical requirements met- Ensure that there is a Dockerfile.
+
+- Using the 'docker-compose ps' command, ensure that the container was
+
+### For Studentscreated (using the flag '-p' is authorized if necessary).
+
+1. **Test Everything**: Ensure all services work before submission- Try to access the service via http (port 80) and verify that you
+
+2. **Document Thoroughly**: Provide clear README and documentationcannot connect.
+
+3. **Follow Standards**: Adhere to all specified requirementshttps://projects.intra.42.fr/scale_teams/3929979/edit
+
+4. **Security First**: Implement proper security practices4/72/16/22, 6:12 PM
+
+5. **Clean Code**: Write maintainable and well-organized codeIntra Projects Inception Edit
+
+- Open https://login.42.fr/ in your browser, where login is the login
+
+---of the evaluated student. The displayed page must be the configured
+
+WordPress website (you shouldn't see the WordPress Installation page).
+
+## 📚 Additional Resources- The use of a TLS v1.2/v1.3 certificate is mandatory and must be
+
+- Docker Documentation: https://docs.docker.com/demonstrated. The SSL/TLS certificate doesn't have to be recognized.
+
+- Docker Compose Reference: https://docs.docker.com/compose/A self-signed certificate warning may appear.
+
+- NGINX Configuration: https://nginx.org/en/docs/If any of the above points is not clearly explained and correct, the
+
+- WordPress with Docker: https://hub.docker.com/_/wordpressevaluation process ends now.
+
+- MariaDB Documentation: https://mariadb.org/documentation/
+
+Yes
+
+---
+
+No
+
+**Note**: This evaluation focuses on understanding containerization, service orchestration, and infrastructure management. The goal is to demonstrate proficiency in Docker ecosystem and system administration skills.WordPress with php-fpm and its volume
+- Ensure that there is a Dockerfile.
+- Ensure that there is no NGINX in the Dockerfile.
+- Using the 'docker-compose ps' command, ensure that the container was
+created (using the flag '-p' is authorized if necessary).
+- Ensure that there is a Volume. To do so:
+Run the command 'docker volume ls' then 'docker volume inspect
+'. Verify that the result in the standard output contains
+the path '/home/login/data/', where login is the login of the evaluated
+student.
+- Ensure that you can add a comment using the available WordPress user.
+- Sign in with the administrator account to access the Administration
+dashboard. The Admin username must not include 'admin' or 'Admin'
+(e.g., admin, administrator, Admin-login, admin-123, and so forth).
+- From the Administration dashboard, edit a page. Verify on the website
+that the page has been updated.
+If any of the above points is not correct, the evaluation process ends
+now.
+
+Yes
+
+No
+MariaDB and its volume
+- Ensure that there is a Dockerfile.
+- Ensure that there is no NGINX in the Dockerfile.
+- Using the 'docker-compose ps' command, ensure that the container was
+created (using the flag '-p' is authorized if necessary).
+- Ensure that there is a Volume. To do so:
+Run the command 'docker volume ls' then 'docker volume inspect
+'. Verify that the result in the standard output contains
+the path '/home/login/data/', where login is the login of the evaluated
+student.
+- The evaluated student must be able to explain you how to login into
+the database. Try to login into the SQL database as root but with no
+password. If the login is successful, the evaluation process ends now.
+https://projects.intra.42.fr/scale_teams/3929979/edit
+5/72/16/22, 6:12 PM
+Intra Projects Inception Edit
+- Try to login into the SQL database with the user account and its
+password. Verify that the database is not empty.
+If any of the above points is not correct, the evaluation process ends
+now.
+
+
+Yes
+No
+Persistence!
+- This part is pretty straightforward. You have to reboot the virtual
+machine. Once it has restarted, launch docker-compose again. Then,
+verify that everything is functional, and that both WordPress and
+MariaDB are configured. The changes you made previously to the
+WordPress website should still be here.
+If any of the above points is not correct, the evaluation process ends
+now.
+
+
+Yes
+No
+Bonus
+Evaluate the bonus part if, and only if, the mandatory part has been entirely and perfectly done, and the error
+management handles unexpected or bad usage. In case all the mandatory points were not passed during the
+defense, bonus points must be totally ignored.
+Bonus
+Add 1 point per bonus authorized in the subject.
+Verify and test the proper functioning and implementation of each extra
+service.
+For the free choice service, the evaluated student has to give you a
+simple explanation about how it works and why they think it is usefu

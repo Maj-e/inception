@@ -1,0 +1,300 @@
+# INCEPTION PROJECTMandatory part
+
+This project involves setting up a small infrastructure composed of different services under specific rules. The whole project has to be done in a virtual machine. You must use
+
+## 🎯 Mandatory PartDocker Compose.
+
+Each Docker image must have the same name as its corresponding service.
+
+### Project OverviewEach service has to run in a dedicated container.
+
+This project involves setting up a small infrastructure composed of different services under specific rules. For performance reasons, the containers must be built from either the penultimate stable
+
+The whole project has to be done in a virtual machine using **Docker Compose**.version of Alpine or Debian. The choice is yours.
+
+You also have to write your own Dockerfiles, one per service. The Dockerfiles must
+
+### 📋 General Requirementsbe called in your docker-compose.yml by your Makefile.
+
+- Each Docker image must have the same name as its corresponding serviceThis means you must build the Docker images for your project yourself. It is then forbidden to pull ready-made Docker images or use services such as DockerHub (Alpine/Debian
+
+- Each service must run in a dedicated containerbeing excluded from this rule).
+
+- Containers must be built from either the penultimate stable version of **Alpine** or **Debian**You then have to set up:
+
+- You must write your own Dockerfiles, one per service• A Docker container that contains NGINX with TLSv1.2 or TLSv1.3 only.
+
+- Dockerfiles must be called in your docker-compose.yml by your Makefile• A Docker container that contains WordPress with php-fpm (it must be installed
+
+- **Forbidden**: Pull ready-made Docker images or use services such as DockerHub (except Alpine/Debian)and configured) only, without nginx.
+
+• A Docker container that contains only MariaDB, without nginx.
+
+### 🐳 Required Services• A volume that contains your WordPress database.
+
+- **NGINX Container**: Contains NGINX with TLSv1.2 or TLSv1.3 only• A second volume that contains your WordPress website files.
+
+- **WordPress Container**: Contains WordPress with php-fpm (installed and configured), without nginx• A docker-network that establishes the connection between your containers.
+
+- **MariaDB Container**: Contains only MariaDB, without nginxYour containers must restart automatically in case of a crash.
+
+- **Volume 1**: Contains your WordPress databaseA Docker container is not a virtual machine. Thus, it is not
+
+- **Volume 2**: Contains your WordPress website files  recommended to use any hacky patches based on ’tail -f’ and similar
+
+- **Docker Network**: Establishes connection between containersmethods when trying to run it. Read about how daemons work and
+
+whether it’s a good idea to use them or not.
+
+### ⚠️ Important Rules7
+
+Inception
+
+✅ **Required:**Of course, using network: host or --link or links: is forbidden.
+
+- Containers must restart automatically in case of a crashThe network line must be present in your docker-compose.yml file.
+
+- Network line must be present in docker-compose.ymlYour containers must not be started with a command running an
+
+- Two users in WordPress database (one admin, username must NOT contain 'admin', 'Admin', 'administrator', 'Administrator')infinite loop. Thus, this also applies to any command used as
+
+- Volumes available in `/home/login/data` folder on host machineentrypoint, or used in entrypoint scripts. The following are a
+
+- Domain name must be `login.42.fr` (replace with your login)few prohibited hacky patches: tail -f, bash, sleep infinity, while
+
+- Use environment variables (.env file recommended)true.
+
+- Use Docker secrets for confidential informationRead about PID 1 and the best practices for writing Dockerfiles.
+
+• In your WordPress database, there must be two users, one of them being the administrator. The administrator’s username must not contain ’admin’, ’Admin’, ’administrator’, or ’Administrator’ (e.g., admin, administrator, Administrator, admin-123,
+
+❌ **Forbidden:**etc.).
+
+- Using `network: host` or `--link` or `links:`Your volumes will be available in the /home/login/data folder of the
+
+- Commands running infinite loops (`tail -f`, `bash`, `sleep infinity`, `while true`)host machine using Docker. Of course, you have to replace the login
+
+- Hacky patches for entrypointswith yours.
+
+- Latest tagTo simplify the process, you must configure your domain name to point to your local
+
+- Passwords in DockerfilesIP address.
+
+This domain name must be login.42.fr. Again, you must use your own login.
+
+💡 **Best Practices:**For example, if your login is ’wil’, wil.42.fr will redirect to the IP address pointing to
+
+- Read about PID 1 and best practices for writing DockerfilesWil’s website.
+
+- Understand how daemons workThe latest tag is prohibited.
+
+- NGINX container must be the sole entry point (port 443, TLSv1.2 or TLSv1.3)Passwords must not be present in your Dockerfiles.
+
+The use of environment variables is mandatory.
+
+### 📁 Expected Directory StructureIt is also strongly recommended to use a .env file to store
+
+```environment variables and to use the Docker secrets to store any
+
+inception/confidential information.
+
+├── MakefileYour NGINX container must be the sole entry point into your
+
+├── secrets/infrastructure, accessible only via port 443, using the TLSv1.2
+
+│   ├── credentials.txtor TLSv1.3 protocol.
+
+│   ├── db_password.txt8
+
+│   └── db_root_password.txtInception
+
+└── srcs/Here is an example diagram of the expected result:
+
+    ├── docker-compose.yml9
+
+    ├── .envInception
+
+    └── requirements/Below is an example of the expected directory structure:
+
+        ├── bonus/$> ls -alR
+
+        ├── mariadb/total XX
+
+        │   ├── conf/drwxrwxr-x 3 wil wil 4096 avril 42 20:42 .
+
+        │   ├── Dockerfiledrwxrwxrwt 17 wil wil 4096 avril 42 20:42 ..
+
+        │   ├── .dockerignore-rw-rw-r-- 1 wil wil XXXX avril 42 20:42 Makefile
+
+        │   └── tools/drwxrwxr-x 3 wil wil 4096 avril 42 20:42 secrets
+
+        ├── nginx/drwxrwxr-x 3 wil wil 4096 avril 42 20:42 srcs
+
+        │   ├── conf/./secrets:
+
+        │   ├── Dockerfiletotal XX
+
+        │   ├── .dockerignoredrwxrwxr-x 2 wil wil 4096 avril 42 20:42 .
+
+        │   └── tools/drwxrwxr-x 6 wil wil 4096 avril 42 20:42 ..
+
+        └── wordpress/-rw-r--r-- 1 wil wil XXXX avril 42 20:42 credentials.txt
+
+            ├── conf/-rw-r--r-- 1 wil wil XXXX avril 42 20:42 db_password.txt
+
+            ├── Dockerfile-rw-r--r-- 1 wil wil XXXX avril 42 20:42 db_root_password.txt
+
+            ├── .dockerignore./srcs:
+
+            └── tools/total XX
+
+```drwxrwxr-x 3 wil wil 4096 avril 42 20:42 .
+
+drwxrwxr-x 3 wil wil 4096 avril 42 20:42 ..
+
+### 🔐 Security Requirements-rw-rw-r-- 1 wil wil XXXX avril 42 20:42 docker-compose.yml
+
+- Any credentials, API keys, passwords must be saved locally and ignored by git-rw-rw-r-- 1 wil wil XXXX avril 42 20:42 .env
+
+- Publicly stored credentials will lead to project failuredrwxrwxr-x 5 wil wil 4096 avril 42 20:42 requirements
+
+- Use .env file for environment variables./srcs/requirements:
+
+- Use Docker secrets for sensitive datatotal XX
+
+drwxrwxr-x 5 wil wil 4096 avril 42 20:42 .
+
+---drwxrwxr-x 3 wil wil 4096 avril 42 20:42 ..
+
+drwxrwxr-x 4 wil wil 4096 avril 42 20:42 bonus
+
+## 🌟 Bonus Partdrwxrwxr-x 4 wil wil 4096 avril 42 20:42 mariadb
+
+drwxrwxr-x 4 wil wil 4096 avril 42 20:42 nginx
+
+### Overviewdrwxrwxr-x 4 wil wil 4096 avril 42 20:42 tools
+
+The bonus part is intended to be simple. A Dockerfile must be written for each additional service.drwxrwxr-x 4 wil wil 4096 avril 42 20:42 wordpress
+
+Each service will run inside its own container with dedicated volumes if necessary../srcs/requirements/mariadb:
+
+total XX
+
+### 📝 Bonus Services Listdrwxrwxr-x 4 wil wil 4096 avril 42 20:45 .
+
+- **Redis Cache**: Set up redis cache for WordPress website cache managementdrwxrwxr-x 5 wil wil 4096 avril 42 20:42 ..
+
+- **FTP Server**: Container pointing to WordPress website volumedrwxrwxr-x 2 wil wil 4096 avril 42 20:42 conf
+
+- **Static Website**: Simple static website (any language except PHP)-rw-rw-r-- 1 wil wil XXXX avril 42 20:42 Dockerfile
+
+- **Adminer**: Database administration tool-rw-rw-r-- 1 wil wil XXXX avril 42 20:42 .dockerignore
+
+- **Custom Service**: Service of your choice (must justify during defense)drwxrwxr-x 2 wil wil 4096 avril 42 20:42 tools
+
+[...]
+
+### 📝 Bonus Rules./srcs/requirements/nginx:
+
+- Extra services may open more ports as neededtotal XX
+
+- Bonus will only be assessed if mandatory part is **perfect**drwxrwxr-x 4 wil wil 4096 avril 42 20:42 .
+
+- Perfect means: fully completed and functions without any malfunctionsdrwxrwxr-x 5 wil wil 4096 avril 42 20:42 ..
+
+- If ANY mandatory requirement is not passed, bonus will NOT be evaluateddrwxrwxr-x 2 wil wil 4096 avril 42 20:42 conf
+
+-rw-rw-r-- 1 wil wil XXXX avril 42 20:42 Dockerfile
+
+----rw-rw-r-- 1 wil wil XXXX avril 42 20:42 .dockerignore
+
+drwxrwxr-x 2 wil wil 4096 avril 42 20:42 tools
+
+## 🚀 Quick Start Commands[...]
+
+```bash$> cat srcs/.env
+
+# Build and start all servicesDOMAIN_NAME=wil.42.fr
+
+make all# MYSQL SETUP
+
+MYSQL_USER=XXXXXXXXXXXX
+
+# Start services only[...]
+
+make up$>
+
+For obvious security reasons, any credentials, API keys, passwords,
+
+# Stop all servicesetc., must be saved locally in various ways / files and ignored by
+
+make downgit. Publicly stored credentials will lead you directly to a failure
+
+of the project.
+
+# Full cleanup10
+
+make fcleanInception
+
+You can store your variables (as a domain name) in an environment
+
+# Rebuild everythingvariable file like .env
+
+make re11
+
+Chapter VI
+
+# Bonus servicesBonus part
+
+make bonusFor this project, the bonus part is intended to be simple.
+
+```A Dockerfile must be written for each additional service. Thus, each service will run
+
+inside its own container and will have, if necessary, its dedicated volume.
+
+## 🌐 Access PointsBonus list:
+
+- **Main Site**: https://localhost:443• Set up redis cache for your WordPress website in order to properly manage the
+
+- **Portfolio** (bonus): http://localhost:3000cache.
+
+- **Adminer** (bonus): http://localhost:8080• Set up a FTP server container pointing to the volume of your WordPress website.
+
+- **Monitoring** (bonus): http://localhost:19999• Create a simple static website in the language of your choice except PHP (yes, PHP
+
+- **Redis** (bonus): localhost:6379is excluded). For example, a showcase site or a site for presenting your resume.
+
+- **FTP** (bonus): ftp://localhost:21• Set up Adminer.
+
+• Set up a service of your choice that you think is useful. During the defense, you
+
+---will have to justify your choice.
+
+To complete the bonus part, you have the possibility to set up extra
+
+## 📝 Notes for Current Implementationservices. In this case, you may open more ports to suit your needs.
+
+The bonus part will only be assessed if the mandatory part is
+
+### ✅ What's Already Donecompleted perfectly. Perfect means the mandatory part has been
+
+- ✅ Makefile with all required targetsfully completed and functions without any malfunctions. If you have
+
+- ✅ Docker Compose configuration (mandatory + bonus)not passed ALL the mandatory requirements, your bonus part will not
+
+- ✅ Environment variables (.env file)be evaluated at all.
+- ✅ Docker secrets (credentials, passwords)
+- ✅ Volume directories setup
+- ✅ All required Dockerfiles
+- ✅ Network configuration
+- ✅ Bonus services (Redis, FTP, Portfolio, Adminer, Monitoring)
+
+### 🔧 Current Issue
+- 🔴 **Database Connection Error**: MariaDB script needs fixing
+- 🔴 **Image Build Issue**: Docker pulling official images instead of building custom ones
+
+### 🎯 Next Steps
+1. Fix MariaDB initialization script
+2. Force rebuild of custom Docker images
+3. Test database connectivity
+4. Verify WordPress connection to database
