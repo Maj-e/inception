@@ -10,67 +10,55 @@
 #                                                                              #
 # **************************************************************************** #
 
-# Variables
 COMPOSE_FILE = srcs/docker-compose.yml
 ENV_FILE = srcs/.env
 DATA_DIR = /home/mjeannin/data
 
-# Colors for better output
 GREEN = \033[0;32m
 YELLOW = \033[0;33m
 RED = \033[0;31m
 BLUE = \033[0;34m
 NC = \033[0m
 
-# Target definitions
 .PHONY: all build up down restart clean fclean re logs ps help
 .PHONY: volumes-create volumes-clean
 .PHONY: nginx wordpress mariadb
 .PHONY: bonus bonus-build bonus-up bonus-down bonus-clean bonus-fclean
 
-# Default target
 all: volumes-create build up
 
-# Create necessary directories for volumes
 volumes-create:
 	@echo "$(BLUE)Creating volume directories...$(NC)"
 	@mkdir -p $(DATA_DIR)/wordpress
 	@mkdir -p $(DATA_DIR)/mariadb
 	@echo "$(GREEN)✓ Volume directories created$(NC)"
 
-# Build all Docker images
 build:
 	@echo "$(YELLOW)Building all Docker images...$(NC)"
 	@cd srcs && docker compose build
 	@echo "$(GREEN)✓ All images built successfully$(NC)"
 
-# Start all services
 up:
 	@echo "$(GREEN)Starting Inception services...$(NC)"
 	@cd srcs && docker compose up -d
 	@echo "$(GREEN)✓ All services started$(NC)"
 	@echo "$(BLUE)Site available at: https://localhost:443$(NC)"
 
-# Stop all services
 down:
 	@echo "$(RED)Stopping all services...$(NC)"
 	@cd srcs && docker compose down
 	@echo "$(GREEN)✓ All services stopped$(NC)"
 
-# Restart services
 restart: down up
 
-# Show container status
 ps:
 	@echo "$(BLUE)Container status:$(NC)"
 	@cd srcs && docker compose ps
 
-# Show logs for all services
 logs:
 	@echo "$(BLUE)Showing logs (press Ctrl+C to exit):$(NC)"
 	@cd srcs && docker compose logs -f
 
-# Clean containers and networks (keep images and volumes)
 clean: down
 	@echo "$(YELLOW)Cleaning containers and networks...$(NC)"
 	@docker system prune -f

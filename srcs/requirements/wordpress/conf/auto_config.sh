@@ -16,9 +16,14 @@ fi
 # Wait for MariaDB to be ready (precaution)
 sleep 10
 
+# Debug: Show variables
+echo "DEBUG: SQL_USER = ${SQL_USER}"
+echo "DEBUG: SQL_DATABASE = ${SQL_DATABASE}"
+echo "DEBUG: Attempting to connect to MariaDB..."
+
 # Check if MariaDB is accessible
 while ! mariadb -h"mariadb" -u"${SQL_USER}" -p"${SQL_PASSWORD}" -e "SELECT 1" >/dev/null 2>&1; do
-    echo "Waiting for MariaDB to be ready..."
+    echo "Waiting for MariaDB to be ready... (user: ${SQL_USER})"
     sleep 2
 done
 
