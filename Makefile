@@ -14,6 +14,10 @@
 COMPOSE_FILE = srcs/docker-compose.yml
 ENV_FILE = srcs/.env
 DATA_DIR = /home/mjeannin/data
+SECRETS_DIR = secrets
+DB_PASSWORD_FILE = $(SECRETS_DIR)/db_password.txt
+DB_ROOT_PASSWORD_FILE = $(SECRETS_DIR)/db_root_password.txt
+CREDENTIALS_FILE = $(SECRETS_DIR)/credentials.txt
 
 # Colors for better output
 GREEN = \033[0;32m
@@ -26,9 +30,10 @@ NC = \033[0m
 .PHONY: all build up down restart clean fclean re logs ps help
 .PHONY: volumes-create volumes-clean
 .PHONY: nginx wordpress mariadb
+.PHONY: check env-init secrets-init doctor
 
 # Default target
-all: volumes-create build up
+all: check volumes-create build up
 
 # Create necessary directories for volumes
 volumes-create:
@@ -38,17 +43,56 @@ volumes-create:
 	@echo "$(GREEN)✓ Volume directories created$(NC)"
 
 # Build all Docker images
-build:
+build: check
 	@echo "$(YELLOW)Building all Docker images...$(NC)"
 	@cd srcs && docker compose build
 	@echo "$(GREEN)✓ All images built successfully$(NC)"
 
 # Start all services
-up:
+up: check
 	@echo "$(GREEN)Starting Inception services...$(NC)"
 	@cd srcs && docker compose up -d
 	@echo "$(GREEN)✓ All services started$(NC)"
 	@echo "$(BLUE)Site available at: https://localhost:443$(NC)"
+
+# Verify prerequisites (Docker Engine + Compose v2)
+check:
+	@echo "$(BLUE)Checking prerequisites...$(NC)"
+	@command -v docker >/dev/null 2>&1 || { echo "$(RED)Docker not found. Please install Docker Engine and the Compose v2 plugin.$(NC)"; exit 127; }
+	@docker compose version >/dev/null 2>&1 || { echo "$(RED)Docker Compose v2 plugin not found. Please install the docker-compose-plugin.$(NC)"; exit 127; }
+	@docker ps >/dev/null 2>&1 || { echo "$(RED)Cannot access Docker daemon. Ensure the service is running and your user is in the 'docker' group (then open a new shell or run 'newgrp docker').$(NC)"; exit 127; }
+	@[ -f $(ENV_FILE) ] || { echo "$(RED)Missing environment file: $(ENV_FILE). Run 'make env-init' to create it.$(NC)"; exit 2; }
+	@[ -f $(DB_PASSWORD_FILE) ] || { echo "$(RED)Missing secret: $(DB_PASSWORD_FILE). Run 'make secrets-init' to scaffold secrets.$(NC)"; exit 2; }
+	@[ -f $(DB_ROOT_PASSWORD_FILE) ] || { echo "$(RED)Missing secret: $(DB_ROOT_PASSWORD_FILE). Run 'make secrets-init'.$(NC)"; exit 2; }
+	@[ -f $(CREDENTIALS_FILE) ] || { echo "$(RED)Missing secret: $(CREDENTIALS_FILE). Run 'make secrets-init'.$(NC)"; exit 2; }
+	@echo "$(GREEN)✓ Prerequisites OK$(NC)"
+
+# Create a default .env from example if missing
+env-init:
+	@echo "$(BLUE)Initializing environment file...$(NC)"
+	@[ -f $(ENV_FILE) ] && { echo "$(YELLOW)$(ENV_FILE) already exists. Skipping.$(NC)"; exit 0; } || true
+	@[ -f srcs/.env.example ] || { echo "$(RED)srcs/.env.example not found.$(NC)"; exit 2; }
+	@cp srcs/.env.example $(ENV_FILE)
+	@echo "$(GREEN)✓ Created $(ENV_FILE). Please edit values as needed.$(NC)"
+
+# Scaffold secrets with placeholder values (change them!)
+secrets-init:
+	@echo "$(BLUE)Initializing secrets...$(NC)"
+	@mkdir -p $(SECRETS_DIR)
+	@[ -f $(DB_PASSWORD_FILE) ] || { echo "change_me_wp_user_password" > $(DB_PASSWORD_FILE); }
+	@[ -f $(DB_ROOT_PASSWORD_FILE) ] || { echo "change_me_root_password" > $(DB_ROOT_PASSWORD_FILE); }
+	@[ -f $(CREDENTIALS_FILE) ] || { printf "admin:change_me_admin_password\nuser2:change_me_user2_password\n" > $(CREDENTIALS_FILE); }
+	@chmod 600 $(DB_PASSWORD_FILE) $(DB_ROOT_PASSWORD_FILE) $(CREDENTIALS_FILE)
+	@echo "$(GREEN)✓ Secrets ready in $(SECRETS_DIR)/ (update with strong passwords).$(NC)"
+
+# Quick health report
+doctor: info
+	@echo "$(BLUE)=== Doctor checks ===$(NC)"
+	@docker ps >/dev/null 2>&1 && echo "$(GREEN)Docker daemon access: OK$(NC)" || echo "$(RED)Docker daemon access: FAIL$(NC)"
+	@[ -f $(ENV_FILE) ] && echo "$(GREEN)Env file ($(ENV_FILE)): OK$(NC)" || echo "$(RED)Env file: MISSING$(NC)"
+	@[ -f $(DB_PASSWORD_FILE) ] && echo "$(GREEN)Secret db_password: OK$(NC)" || echo "$(RED)Secret db_password: MISSING$(NC)"
+	@[ -f $(DB_ROOT_PASSWORD_FILE) ] && echo "$(GREEN)Secret db_root_password: OK$(NC)" || echo "$(RED)Secret db_root_password: MISSING$(NC)"
+	@[ -f $(CREDENTIALS_FILE) ] && echo "$(GREEN)Secret credentials: OK$(NC)" || echo "$(RED)Secret credentials: MISSING$(NC)"
 
 # Stop all services
 down:
@@ -157,6 +201,11 @@ help:
 	@echo "  $(YELLOW)make volumes-clean$(NC)   - Remove only volume data"
 	@echo "  $(YELLOW)make fclean$(NC)          - Full cleanup (remove everything)"
 	@echo "  $(YELLOW)make re$(NC)              - Rebuild everything from scratch (fclean + all)"
+	@echo ""
+	@echo "$(GREEN)Setup Helpers:$(NC)"
+	@echo "  $(YELLOW)make env-init$(NC)        - Create srcs/.env from example if missing"
+	@echo "  $(YELLOW)make secrets-init$(NC)    - Create secrets files with placeholders"
+	@echo "  $(YELLOW)make doctor$(NC)          - Run quick environment and files checks"
 	@echo ""
 	@echo "$(GREEN)Individual Services:$(NC)"
 	@echo "  $(YELLOW)make nginx$(NC)           - Build and start Nginx only"

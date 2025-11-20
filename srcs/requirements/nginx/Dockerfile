@@ -14,7 +14,7 @@ RUN apt install openssl -y
 
 RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout \
  /etc/nginx/ssl/inception.key -subj \
- "/C=ES/ST=MLG/L=Malaga/O=42/OU=42/CN=mjeannin.42.es/UID=mjeannin"
+ "/C=ES/ST=MLG/L=Malaga/O=42/OU=42/CN=mjeannin.42.fr/UID=mjeannin"
 
 RUN mkdir -p /var/run/nginx
 

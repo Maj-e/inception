@@ -1,49 +1,43 @@
 #!/bin/bash
 
+set -e
+
 # Read secrets from files
 SQL_PASSWORD=$(cat /run/secrets/db_password)
 SQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
-# Initialize MariaDB if not already done
-if [ ! -d "/var/lib/mysql/mysql" ]; then
-    echo "Initializing MariaDB database..."
-    mysql_install_db --user=mysql --datadir=/var/lib/mysql
-fi
-
-# Create directory for socket
+# Ensure runtime dir exists
 mkdir -p /run/mysqld
 chown mysql:mysql /run/mysqld
 
-# Start MariaDB (not mysql!)
-service mariadb start
+# Initialize MariaDB on first run and bootstrap users/passwords
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+    echo "Initializing MariaDB data directory..."
+    if command -v mariadb-install-db >/dev/null 2>&1; then
+        mariadb-install-db --user=mysql --datadir=/var/lib/mysql
+    else
+        mysql_install_db --user=mysql --datadir=/var/lib/mysql
+    fi
 
-# Wait for MariaDB to be ready
-echo "Waiting for MariaDB to be ready..."
-sleep 10
+    echo "Bootstrapping initial database users and permissions..."
+    cat > /tmp/init.sql <<EOF
+-- Secure root and create database and user
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;
+CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'%' IDENTIFIED BY '${SQL_PASSWORD}';
+GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'%';
+FLUSH PRIVILEGES;
+EOF
 
-# Check if MariaDB is started
-while ! mysqladmin ping >/dev/null 2>&1; do
-    echo "Waiting for MariaDB..."
-    sleep 1
-done
+    # Run bootstrap (executes SQL as system root without needing a password)
+    mysqld --user=mysql --datadir=/var/lib/mysql --bootstrap < /tmp/init.sql
+    rm -f /tmp/init.sql
+    echo "Bootstrap complete."
+fi
 
-echo "MariaDB is ready! Creating database and user..."
-
-# Create database and user
-mysql -e "CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;"
-mysql -e "CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'%' IDENTIFIED BY '${SQL_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'%';"
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';"
-mysql -e "CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
-mysql -e "FLUSH PRIVILEGES;"
-
-echo "Database setup complete! Restarting MariaDB in safe mode..."
-
-# Stop MariaDB properly
-mysqladmin -u root -p${SQL_ROOT_PASSWORD} shutdown
-
-# Restart in daemon mode
+echo "Starting MariaDB in safe mode..."
 exec mysqld_safe --user=mysql
 
 
