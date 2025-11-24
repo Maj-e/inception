@@ -1,44 +1,34 @@
 FROM debian:bookworm
 
-RUN apt-get update -y
-RUN apt-get upgrade -y
+# 1) Installer PHP-FPM + extensions nécessaires + outils
+RUN apt-get update && \
+    apt-get install -y \
+        php-fpm \
+        php-mysql \
+        php-cli \
+        php-curl \
+        php-xml \
+        php-mbstring \
+        php-zip \
+        php-gd \
+        wget \
+        curl \
+        mariadb-client && \
+    rm -rf /var/lib/apt/lists/*
 
-# Installer wget pour télécharger WordPress
-RUN apt-get install -y wget
-
-# Installer PHP 8.2 et ses dépendances (disponible sur bookworm)
-RUN apt-get install -y \
-    php8.2 \
-    php8.2-fpm \
-    php8.2-mysql \
-    php8.2-curl \
-    php8.2-gd \
-    php8.2-xml \
-    php8.2-mbstring \
-    php8.2-zip \
-    mariadb-client
-
-# Télécharger WordPress en anglais (version stable)
-RUN wget https://wordpress.org/latest.tar.gz -P /var/www
-
-# Décompresser WordPress et nettoyer
-RUN cd /var/www && tar -xzf latest.tar.gz && rm latest.tar.gz
-
-# Donner les droits à root
-RUN chown -R root:root /var/www/wordpress
-
-# Installer WP-CLI
-RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-RUN chmod +x wp-cli.phar
-RUN mv wp-cli.phar /usr/local/bin/wp
-
-# Copier les fichiers de configuration
-COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
-COPY conf/auto_config.sh /auto_config.sh
-RUN chmod +x /auto_config.sh
-
+# 2) Dossier de travail
 WORKDIR /var/www/wordpress
+
+# 3) (Optionnel) créer le dossier, mais le contenu viendra surtout du volume + entrypoint
+RUN mkdir -p /var/www/wordpress
+
+# 4) Config PHP-FPM : écouter sur 0.0.0.0:9000 au lieu du socket
+RUN sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php/*/fpm/pool.d/www.conf
+
+# 5) Script d'entrée
+COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000
 
-ENTRYPOINT ["/auto_config.sh"]
+ENTRYPOINT ["entrypoint.sh"]

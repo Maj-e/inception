@@ -1,13 +1,17 @@
 FROM debian:bookworm
 
-RUN apt-get update -y
+RUN apt-get update && \
+    apt-get install -y mariadb-server && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt-get upgrade -y
+RUN mkdir -p /run/mysqld && \
+    mkdir -p /var/lib/mysql && \
+    chown -R mysql:mysql /run/mysqld /var/lib/mysql && \
+    rm -rf /var/lib/mysql/*
 
-RUN apt-get install mariadb-server -y
+COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY conf/50-server.cnf	/etc/mysql/mariadb.conf.d/50-server.cnf
+EXPOSE 3306
 
-COPY tools/script.sh /script.sh
-RUN chmod +x /script.sh
-CMD ["/script.sh"]
+ENTRYPOINT ["entrypoint.sh"]

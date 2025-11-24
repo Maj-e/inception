@@ -1,27 +1,19 @@
 FROM debian:bookworm
 
-RUN apt update
+RUN apt-get update && \
+    apt-get install -y nginx openssl && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt install nginx -y
+RUN mkdir -p /etc/nginx/ssl /var/www/wordpress /var/log/nginx
 
-RUN apt install vim -y
-
-RUN apt install curl -y
-
-RUN mkdir -p /etc/nginx/ssl
-
-RUN apt install openssl -y
-
-RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout \
- /etc/nginx/ssl/inception.key -subj \
- "/C=ES/ST=MLG/L=Malaga/O=42/OU=42/CN=mjeannin.42.fr/UID=mjeannin"
-
-RUN mkdir -p /var/run/nginx
+ARG DOMAIN_NAME=localhost
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/nginx.key \
+    -out /etc/nginx/ssl/nginx.crt \
+    -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=Student/CN=${DOMAIN_NAME}"
 
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 
-RUN chmod 755 /var/www/html
+EXPOSE 443
 
-RUN chown -R www-data:www-data /var/www/html
-
-CMD [ "nginx", "-g", "daemon off;" ]
+CMD ["nginx", "-g", "daemon off;"]

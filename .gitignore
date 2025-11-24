@@ -1,8 +1,7 @@
 # Inception Project .gitignore
 
 # Secrets - NE JAMAIS PUSHER LES MOTS DE PASSE !
-secrets/
-*.txt
+secrets/*
 
 # Environment files
 .env

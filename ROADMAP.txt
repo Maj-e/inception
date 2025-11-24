@@ -1,0 +1,45 @@
+Inception Project Roadmap (Concise)
+
+- Base Images:
+  - Use penultimate stable Alpine or Debian only (no latest).
+  - One Dockerfile per service; build locally (no pulling prebuilt images).
+
+- Services (1 container each):
+  - nginx: TLS only (TLSv1.2/1.3), sole entry point on port 443.
+  - wordpress: php-fpm only (no nginx), properly installed/configured.
+  - mariadb: database only (no nginx).
+
+- Compose/Images:
+  - docker-compose required; image names match service names.
+  - Define a custom docker network; no host network, --link, or links.
+  - Set restart policies so containers auto-restart on crash.
+
+- Volumes (host paths):
+  - WordPress DB data volume → /home/<login>/data/mariadb.
+  - WordPress site files volume → /home/<login>/data/wordpress.
+
+- WordPress Setup:
+  - Must create two users; one is administrator.
+  - Admin username must NOT contain: admin/Admin/administrator/Administrator.
+
+- Domain & Access:
+  - Configure login.42.fr to resolve to your local IP.
+  - nginx is the only exposed entry point on 443 (HTTPS only).
+
+- Security & Config:
+  - No credentials in Dockerfiles.
+  - Use environment variables; store in .env where appropriate.
+  - Store secrets (passwords, API keys) via Docker secrets; keep out of git.
+
+- Container Behavior (no hacks):
+  - No infinite loops/tail -f/sleep infinity/while true.
+  - Prefer proper daemons/foreground processes and health checks.
+
+- Makefile Integration:
+  - Makefile must call docker-compose build using your Dockerfiles.
+  - Provide targets to build, up, down, clean, and helpful checks.
+
+- Validation Steps:
+  - Check TLS works via https://login.42.fr (or your mapped domain).
+  - Verify volumes persist data across restarts.
+  - Confirm two WP users exist and constraints are respected.

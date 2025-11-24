@@ -1,84 +1,47 @@
 services:
   mariadb:
-    build:
-      context: ./requirements/mariadb
-      dockerfile: Dockerfile
-    image: mariadb
+    build: ./requirements/mariadb
     container_name: mariadb
-    restart: unless-stopped
-    environment:
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
-    secrets:
-      - db_password
-      - db_root_password
+    env_file:
+      - .env
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - /home/mjeannin/data/mariadb:/var/lib/mysql
     networks:
       - inception
+    restart: unless-stopped
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    env_file:
+      - .env
+    depends_on:
+      - mariadb
+    volumes:
+      - /home/mjeannin/data/wordpress:/var/www/wordpress
+    networks:
+      - inception
+    restart: unless-stopped
 
   nginx:
     build:
       context: ./requirements/nginx
-      dockerfile: Dockerfile
-    image: nginx
+      args:
+        DOMAIN_NAME: ${DOMAIN_NAME}
     container_name: nginx
-    restart: unless-stopped
-    ports:
-      - "443:443"
-    volumes:
-      - wordpress_data:/var/www/wordpress
-    networks:
-      - inception
+    env_file:
+      - .env
     depends_on:
       - wordpress
-
-  wordpress:
-    build:
-      context: ./requirements/wordpress
-      dockerfile: Dockerfile
-    image: wordpress
-    container_name: wordpress
-    restart: unless-stopped
-    environment:
-      - WORDPRESS_DB_HOST=mariadb:3306
-      - WORDPRESS_DB_NAME=${SQL_DATABASE}
-      - WORDPRESS_DB_USER=${SQL_USER}
-      - DOMAIN_NAME=${DOMAIN_NAME}
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
-    secrets:
-      - db_password
-      - credentials
     volumes:
-      - wordpress_data:/var/www/wordpress
+      - /home/mjeannin/data/wordpress:/var/www/wordpress:ro
+    ports:
+      - "443:443"
     networks:
       - inception
-    depends_on:
-      - mariadb
+    restart: unless-stopped
 
-volumes:
-  mariadb_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/mjeannin/data/mariadb
-  wordpress_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/mjeannin/data/wordpress
 
 networks:
   inception:
     driver: bridge
-
-secrets:
-  db_password:
-    file: ../secrets/db_password.txt
-  db_root_password:
-    file: ../secrets/db_root_password.txt
-  credentials:
-    file: ../secrets/credentials.txt
