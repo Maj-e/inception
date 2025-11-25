@@ -14,10 +14,7 @@
 COMPOSE_FILE = srcs/docker-compose.yml
 ENV_FILE = srcs/.env
 DATA_DIR = /home/mjeannin/data
-SECRETS_DIR = secrets
-DB_PASSWORD_FILE = $(SECRETS_DIR)/db_password.txt
-DB_ROOT_PASSWORD_FILE = $(SECRETS_DIR)/db_root_password.txt
-CREDENTIALS_FILE = $(SECRETS_DIR)/credentials.txt
+# secrets are not used; configuration is stored in srcs/.env (MYSQL_*)
 
 # Colors for better output
 GREEN = \033[0;32m
@@ -62,9 +59,10 @@ check:
 	@docker compose version >/dev/null 2>&1 || { echo "$(RED)Docker Compose v2 plugin not found. Please install the docker-compose-plugin.$(NC)"; exit 127; }
 	@docker ps >/dev/null 2>&1 || { echo "$(RED)Cannot access Docker daemon. Ensure the service is running and your user is in the 'docker' group (then open a new shell or run 'newgrp docker').$(NC)"; exit 127; }
 	@[ -f $(ENV_FILE) ] || { echo "$(RED)Missing environment file: $(ENV_FILE). Run 'make env-init' to create it.$(NC)"; exit 2; }
-	@[ -f $(DB_PASSWORD_FILE) ] || { echo "$(RED)Missing secret: $(DB_PASSWORD_FILE). Run 'make secrets-init' to scaffold secrets.$(NC)"; exit 2; }
-	@[ -f $(DB_ROOT_PASSWORD_FILE) ] || { echo "$(RED)Missing secret: $(DB_ROOT_PASSWORD_FILE). Run 'make secrets-init'.$(NC)"; exit 2; }
-	@[ -f $(CREDENTIALS_FILE) ] || { echo "$(RED)Missing secret: $(CREDENTIALS_FILE). Run 'make secrets-init'.$(NC)"; exit 2; }
+	@grep -qE '^MYSQL_DATABASE=' $(ENV_FILE) || { echo "$(RED)Missing MYSQL_DATABASE in $(ENV_FILE).$(NC)"; exit 2; }
+	@grep -qE '^MYSQL_USER=' $(ENV_FILE) || { echo "$(RED)Missing MYSQL_USER in $(ENV_FILE).$(NC)"; exit 2; }
+	@grep -qE '^MYSQL_PASSWORD=' $(ENV_FILE) || { echo "$(RED)Missing MYSQL_PASSWORD in $(ENV_FILE).$(NC)"; exit 2; }
+	@grep -qE '^MYSQL_ROOT_PASSWORD=' $(ENV_FILE) || { echo "$(RED)Missing MYSQL_ROOT_PASSWORD in $(ENV_FILE).$(NC)"; exit 2; }
 	@echo "$(GREEN)✓ Prerequisites OK$(NC)"
 
 # Create a default .env from example if missing
@@ -75,24 +73,17 @@ env-init:
 	@cp srcs/.env.example $(ENV_FILE)
 	@echo "$(GREEN)✓ Created $(ENV_FILE). Please edit values as needed.$(NC)"
 
-# Scaffold secrets with placeholder values (change them!)
-secrets-init:
-	@echo "$(BLUE)Initializing secrets...$(NC)"
-	@mkdir -p $(SECRETS_DIR)
-	@[ -f $(DB_PASSWORD_FILE) ] || { echo "change_me_wp_user_password" > $(DB_PASSWORD_FILE); }
-	@[ -f $(DB_ROOT_PASSWORD_FILE) ] || { echo "change_me_root_password" > $(DB_ROOT_PASSWORD_FILE); }
-	@[ -f $(CREDENTIALS_FILE) ] || { printf "admin:change_me_admin_password\nuser2:change_me_user2_password\n" > $(CREDENTIALS_FILE); }
-	@chmod 600 $(DB_PASSWORD_FILE) $(DB_ROOT_PASSWORD_FILE) $(CREDENTIALS_FILE)
-	@echo "$(GREEN)✓ Secrets ready in $(SECRETS_DIR)/ (update with strong passwords).$(NC)"
+# Note: secrets-init removed — this project uses srcs/.env (MYSQL_*) for DB credentials
 
 # Quick health report
 doctor: info
 	@echo "$(BLUE)=== Doctor checks ===$(NC)"
 	@docker ps >/dev/null 2>&1 && echo "$(GREEN)Docker daemon access: OK$(NC)" || echo "$(RED)Docker daemon access: FAIL$(NC)"
 	@[ -f $(ENV_FILE) ] && echo "$(GREEN)Env file ($(ENV_FILE)): OK$(NC)" || echo "$(RED)Env file: MISSING$(NC)"
-	@[ -f $(DB_PASSWORD_FILE) ] && echo "$(GREEN)Secret db_password: OK$(NC)" || echo "$(RED)Secret db_password: MISSING$(NC)"
-	@[ -f $(DB_ROOT_PASSWORD_FILE) ] && echo "$(GREEN)Secret db_root_password: OK$(NC)" || echo "$(RED)Secret db_root_password: MISSING$(NC)"
-	@[ -f $(CREDENTIALS_FILE) ] && echo "$(GREEN)Secret credentials: OK$(NC)" || echo "$(RED)Secret credentials: MISSING$(NC)"
+	@grep -qE '^MYSQL_DATABASE=' $(ENV_FILE) && echo "$(GREEN)MYSQL_DATABASE: OK$(NC)" || echo "$(RED)MYSQL_DATABASE: MISSING$(NC)"
+	@grep -qE '^MYSQL_USER=' $(ENV_FILE) && echo "$(GREEN)MYSQL_USER: OK$(NC)" || echo "$(RED)MYSQL_USER: MISSING$(NC)"
+	@grep -qE '^MYSQL_PASSWORD=' $(ENV_FILE) && echo "$(GREEN)MYSQL_PASSWORD: OK$(NC)" || echo "$(RED)MYSQL_PASSWORD: MISSING$(NC)"
+	@grep -qE '^MYSQL_ROOT_PASSWORD=' $(ENV_FILE) && echo "$(GREEN)MYSQL_ROOT_PASSWORD: OK$(NC)" || echo "$(RED)MYSQL_ROOT_PASSWORD: MISSING$(NC)"
 
 # Stop all services
 down:
@@ -123,18 +114,26 @@ clean: down
 fclean: down
 	@echo "$(RED)⚠️  FULL CLEANUP - This will remove ALL Docker data$(NC)"
 	@echo "$(RED)Removing all containers, networks, and images...$(NC)"
-	@docker system prune -af --volumes
-	@echo "$(RED)Removing volume directories...$(NC)"
-	@sudo rm -rf $(DATA_DIR)/wordpress/* 2>/dev/null || true
-	@sudo rm -rf $(DATA_DIR)/mariadb/* 2>/dev/null || true
+	@docker system prune -af
+	@echo "$(YELLOW)Note: persistent host data in '$(DATA_DIR)' is preserved. To remove it manually, run: sudo rm -rf $(DATA_DIR)/wordpress/* $(DATA_DIR)/mariadb/*$(NC)"
 	@echo "$(GREEN)✓ Full cleanup completed$(NC)"
 
 # Remove only volume data
 volumes-clean:
 	@echo "$(RED)Removing volume data...$(NC)"
-	@sudo rm -rf $(DATA_DIR)/wordpress/* 2>/dev/null || true
-	@sudo rm -rf $(DATA_DIR)/mariadb/* 2>/dev/null || true
-	@echo "$(GREEN)✓ Volume data cleaned$(NC)"
+	@echo "$(YELLOW)Skipping automatic deletion of host volume data for safety.$(NC)"
+	@echo "If you really want to delete persistent data, run:"
+	@echo "  sudo rm -rf $(DATA_DIR)/wordpress/* $(DATA_DIR)/mariadb/*"
+
+.PHONY: volumes-clean-persistent
+volumes-clean-persistent:
+	@if [ "$(FORCE)" != "true" ]; then \
+		echo "$(YELLOW)This target deletes persistent host data. To run it, use: make volumes-clean-persistent FORCE=true$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(RED)Deleting persistent data under $(DATA_DIR)...$(NC)"
+	@sudo rm -rf $(DATA_DIR)/wordpress/* $(DATA_DIR)/mariadb/* || true
+	@echo "$(GREEN)✓ Persistent data removed$(NC)"
 
 # Rebuild everything from scratch
 re: fclean all
@@ -199,12 +198,12 @@ help:
 	@echo "$(GREEN)Cleanup Commands:$(NC)"
 	@echo "  $(YELLOW)make clean$(NC)           - Remove containers and networks (keep images/volumes)"
 	@echo "  $(YELLOW)make volumes-clean$(NC)   - Remove only volume data"
+	@echo "  $(YELLOW)make volumes-clean-persistent$(NC) - Remove persistent host data (requires FORCE=true)"
 	@echo "  $(YELLOW)make fclean$(NC)          - Full cleanup (remove everything)"
 	@echo "  $(YELLOW)make re$(NC)              - Rebuild everything from scratch (fclean + all)"
 	@echo ""
 	@echo "$(GREEN)Setup Helpers:$(NC)"
 	@echo "  $(YELLOW)make env-init$(NC)        - Create srcs/.env from example if missing"
-	@echo "  $(YELLOW)make secrets-init$(NC)    - Create secrets files with placeholders"
 	@echo "  $(YELLOW)make doctor$(NC)          - Run quick environment and files checks"
 	@echo ""
 	@echo "$(GREEN)Individual Services:$(NC)"
