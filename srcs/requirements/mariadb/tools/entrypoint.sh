@@ -18,6 +18,5 @@ FLUSH PRIVILEGES;
 EOF
 fi
 
-echo ">>>MariaDB starting ..."
-exec mysqld --user=mysql --datadir="${DATADIR}" --console
-chmod +x tools/entrypoint.sh
+echo ">>> MariaDB starting ..."
+exec mysqld --user=mysql --datadir="${DATADIR}" --bind-address=0.0.0.0 --console
